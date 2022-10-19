@@ -1,0 +1,447 @@
+{
+  "GlobalVariables": [
+    {
+      "Namespace": "Main",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "KlaraAnxious",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": "How anxious is Klara right now?"
+        },
+        {
+          "Variable": "NiceJacket",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "PercievedMean",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": "How mean does Klara percieve Sofie to be?"
+        },
+        {
+          "Variable": "SofieMask",
+          "Type": "Integer",
+          "Value": "-2",
+          "Description": "How much is Sofie wearing a mask / how vulnerable is she?"
+        },
+        {
+          "Variable": "SofieInterested",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": "How interested is Sofie actually in this conversation and Klara?"
+        },
+        {
+          "Variable": "SofieAshamed",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": "How shameful is Sofie? How much does she feel like she's hurting someone?"
+        },
+        {
+          "Variable": "Smoking",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Did they smoke?"
+        },
+        {
+          "Variable": "AdmittedLyingSmoking",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Klara admitted she lied about smoking"
+        },
+        {
+          "Variable": "KlaraPhone",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "SofiePhone",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "KlaraOrSofieEvaluation",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "False: Klara, true: Sofie"
+        },
+        {
+          "Variable": "BackToEval",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        }
+      ]
+    },
+    {
+      "Namespace": "Smoking",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "sofieSmokeCloud",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie blows a cloud into Klaras face, for fun, not to be mean. "
+        },
+        {
+          "Variable": "smokingDone",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Smoking branch 1: They decide to not smoke anyways"
+        },
+        {
+          "Variable": "smokingDebate",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Smoking branch 2: A debate starts about why Klara asked for a lighter when she hates smoking"
+        },
+        {
+          "Variable": "sofieDisinterested",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Smoking branch 3: Sofie is disinterested in Klara, and smokes without her. "
+        },
+        {
+          "Variable": "dumbLie",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Klara tries to get out with a dumb lie about it being a bad cigarette"
+        },
+        {
+          "Variable": "kindLaugh",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie laughs kindly at Klara's cough"
+        },
+        {
+          "Variable": "dontWantToBeBother",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Smoking branch 4: Klara insists that Sofie can keep smoking and \"shouldn't worry about her\", and Sofie wants to know why."
+        },
+        {
+          "Variable": "meanLaugh",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie laughs at Klara's cough in a kind of mean way"
+        },
+        {
+          "Variable": "sofieMean",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Smoking branch 5: Sofie acts just kind of mean."
+        },
+        {
+          "Variable": "seemLikeNiceKid",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Used only once"
+        },
+        {
+          "Variable": "BadForYou",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie rejects the smoking offer by saying that \"It's bad for you\"."
+        },
+        {
+          "Variable": "EnjoyYourCigarette",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie rejects the smoking offer implicitly by saying \"Now enjoy your cigarette\", not in a mean way, though. "
+        },
+        {
+          "Variable": "iDontSmokeThough",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "hasSmoked",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "SuspectsLying",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Sofie suspects that Klara is lying about smoking (or not smoking, maybe)"
+        },
+        {
+          "Variable": "TriedToLaughWith",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        }
+      ]
+    },
+    {
+      "Namespace": "AfraidShesAwkard",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "SofieLookConfused",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Just a small thing used once. "
+        },
+        {
+          "Variable": "KlaraAngryComment",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Klara get's critical of Sofie's questions. "
+        },
+        {
+          "Variable": "ActedPoliteComment",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        }
+      ]
+    },
+    {
+      "Namespace": "SofieNotSmoking",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "FoolProof",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "DoThisOften",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "AFewTimesYeah",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "No",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "UnderstandingOfLie",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "lyingPath",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "SofieAshamed",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": ""
+        },
+        {
+          "Variable": "SofieTruthMonologue",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "AmIChild",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "MaybeOtherThings",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "MaybeSmokedEarlier",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "MaybeTired",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        }
+      ]
+    },
+    {
+      "Namespace": "FirstChoice",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "Mhmm",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "Smile",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "NarrationDone",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "EverythingAlright",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        }
+      ]
+    },
+    {
+      "Namespace": "NewVariableSet",
+      "Description": "",
+      "Variables": []
+    },
+    {
+      "Namespace": "KlaraEvaluation",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "YouTellYourself",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "AwkwardPhrasing",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "If sofie decides to make fun of the \"a lighter that i might be able to use\""
+        },
+        {
+          "Variable": "Overthinking",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "AwkwardStaring",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "SurpisedA",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Surprised that Sofie decided to interrupt her."
+        },
+        {
+          "Variable": "SuprisedB",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": "Suprised that Sofie decided to interrupt her despite the fact that she took up her phone. "
+        }
+      ]
+    },
+    {
+      "Namespace": "SofieEvaluation",
+      "Description": "",
+      "Variables": [
+        {
+          "Variable": "Sarcasm",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "FalseDichotomy",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "IWantTo1",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "IWantTo2",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "IWantTo3",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "what1",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "what2",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "what3",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "whatA",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "whatB",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "whatC",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "whatD",
+          "Type": "Boolean",
+          "Value": "False",
+          "Description": ""
+        },
+        {
+          "Variable": "whatCounter",
+          "Type": "Integer",
+          "Value": "0",
+          "Description": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=0.9">
+    <title>Give and take</title>
+
+    <link rel="stylesheet" type="text/css" href="tempCSS3.css" media="print" onload="this.media='all'">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+<body> 
+
+    <div id="back"></div>
+
+    <!-- <div class="thought">Really. Do i really want this?</div>
+    <div class="thought">So much, for this absoloute pile of rubbish?</div>
+    <div class="action">"Hiiiiya!"</div> -->
+
+    <div id="SBox">
+        <div id="SContainer">
+            <div id="SContent">
+                <div id="SText">
+                    <div class="thought"></div>
+                </div>
+                <div id="SOptions">
+                    <!-- <div class="option">
+                        <div class="optionActionS">-&nbsp</div>
+                        <div class="optionActionS">Run away, now! And do it very quickly, damnit!</div>
+                    </div> -->
+                </div>
+                <div id="SNext">Continue > </div>
+            </div>
+        </div>
+        <div id="SGrad">  </div>
+    </div>
+
+    <div id="KBox">
+        <div id="KContainer">
+            <div id="KContent">
+                <div id="KText">
+                    <div class="thought"></div>
+                    <!-- <div class="thought">It's so quirky!</div>
+                    <div class="thought">And i saw within her greatness; The potential to become something truly special.</div>
+                    <div class="action">Do a backflip</div> -->
+                </div>
+                <div id="KOptions">
+                    
+                </div>
+                <div id="KNext">Continue > </div>
+            </div>
+        </div>
+        <div id="KGrad">  </div>
+    </div>
+
+    <div id="endScreen">
+        <div id="endText">End</div>
+    </div>
+
+    <div id="blackFade"></div>
+    
+    <div id="blackBack"></div>
+
+
+
+
+    <script>
+
+        var spam = false; 
+        document.addEventListener('keydown', function(event) {
+            if(event.keyCode == 39 && !spam && !switchAnimationActive && continueButton.style.visibility != "hidden") {
+                continueEvent();
+                spam=true; setTimeout(() => {spam=false;}, 50);
+            }
+            if(event.keyCode==82 && optionEvents.length != 0){ //For debugging only, pick a random option.
+                optionEvents[Math.floor(Math.random()*optionEvents.length)]();
+            }
+        });
+
+        let klarOrSof = false;
+
+        var activeNodeId = "0x01000000000028C8";
+        //var activeNodeId = "0x0100000000000A05";
+        //var activeNodeId = "0x01000000000028C8";
+        //Start: "0x01000000000028C8"
+        //0x0100000000000C7E
+
+        var cont = document.getElementById("SContainer");
+        var content = document.getElementById("SContent");
+        var text = document.getElementById("SText");
+        var continueButton = document.getElementById("SNext");
+        var options = document.getElementById("SOptions");
+
+        var continueEvent=null; 
+        var optionEvents=[];
+
+        async function next() {
+
+            node = getNode(activeNodeId);
+            frags = getFrags(node); 
+
+            //Do event (if has one)
+            if(activeEvent != null){doEvent(activeEvent);} 
+
+            //Do instruction on current node
+            doInstruction(node.Instruction);
+
+            //Handle charachter-switching:
+            if(node.Speaker == "Klara" && frags[0][0].Speaker == "Sofie"){
+                switchPerspective(true);
+                await sleep(200);
+            } else if(node.Speaker == "Sofie" && frags[0][0].Speaker == "Klara") {
+                switchPerspective(false); 
+                await sleep(200);
+            }
+
+            //Move on in the graph: 
+            if(frags.length > 1 || frags[0][0].Text.includes("[X]")){//The [X] is for cases where you show one choice as an option, for stylistic reasons.
+                showOptions(frags);
+            }
+            else{
+                continueNext(frags[0][0]);
+            }
+        }
+
+        function continueNext(nextNode){
+
+            //Set previous node opacity
+            if(text.lastElementChild!=null){text.lastElementChild.style.opacity=0.5;}
+
+            //Make new node 
+            var textNode = document.createElement("div");
+            let txt = nextNode.Text;
+
+            if(txt.includes("[A]") || txt.charAt(0)=="\""){ //Is it an action/dialogue?
+                textNode.setAttribute("class", "action");
+                txt = txt.replace("[A]", ""); 
+            } else{
+                textNode.setAttribute("class", "thought");
+            }
+
+            txt = txt.replace("[E]", "");
+
+            textNode.innerHTML=txt; 
+
+            //Add node to text
+            text.appendChild(textNode); 
+            scrollToNext();
+
+            //Activate event (if has one):
+            if(nextNode.Text.includes("[E]")){doEvent(nextNode.Id);} 
+
+            //Set the Id:
+            activeNodeId=nextNode.Id; //THIS IS USUALLY NOT THIS WAY!
+
+            //Handle the continue button styling and functionality 
+            continueButton.style.visibility="visible"; 
+            continueButton.style.marginBottom="100px";
+
+            var old_element = continueButton
+            var new_element = old_element.cloneNode(true); //We have to clone it because removeEventListener is a piece of garbage. 
+            old_element.parentNode.replaceChild(new_element, old_element);
+            continueButton = new_element; 
+
+            continueEvent = function(){
+                continueButton.style.visibility="hidden";
+                continueButton.style.marginBottom="60px";
+                activeNodeId=nextNode.Id; 
+                next(); 
+            }
+            new_element.addEventListener("click", continueEvent);
+            // continueButton.addEventListener("click", continueEvent);
+
+
+        }
+
+        function showOptions(frags){
+
+            //Set previous node opacity
+            if(text.lastElementChild!=null){text.lastElementChild.style.opacity=0.5;}
+
+            //Remove button 
+            continueButton.style.visibility="hidden";
+            continueButton.style.marginBottom="60px";
+
+            //Display options and handle their events: 
+            frags.sort((a, b) => {return a[0].yRank - b[0].yRank;}); //First sort by Y-coordinate
+
+            optionEvents = [];
+            for(let i = 0; i < frags.length; i++){
+                
+                //Create the element    
+                    //Structure
+                var op = document.createElement("div");
+                op.setAttribute("class", "option");
+                
+                var opHyphen = document.createElement("div");
+                var opContent = document.createElement("div");
+
+                    //Styling
+                let action = false;
+                let txt = frags[i][0].Text;
+                txt = txt.replace("[X]", "");
+
+                if(txt.includes("[A]") || txt.charAt(0)=="\""){ //Is it an action/dialogue?
+                    action=true; 
+                    txt = txt.replace("[A]", "");
+                    if(frags[i][0].Speaker == "Sofie"){
+                        opHyphen.setAttribute("class", "optionActionS");
+                        opContent.setAttribute("class", "optionActionS");
+                    } else {
+                        opHyphen.setAttribute("class", "optionActionK");
+                        opContent.setAttribute("class", "optionActionK");
+                    } 
+                } else{
+                    if(frags[i][0].Speaker == "Sofie"){
+                        opHyphen.setAttribute("class", "optionThoughtS");
+                        opContent.setAttribute("class", "optionThoughtS");
+                    } else {
+                        opHyphen.setAttribute("class", "optionThoughtK");
+                        opContent.setAttribute("class", "optionThoughtK");
+                    } 
+                }
+
+                opHyphen.style.flexGrow=0;
+
+                    //Content
+                opHyphen.innerHTML = "-&nbsp";
+                opContent.innerHTML = txt.replace("[E]", ""); //Replace [E] here, but don't remove it from txt, since we need it later. 
+
+                op.appendChild(opHyphen);
+                op.appendChild(opContent);
+                options.appendChild(op); 
+
+                //Handle functionality
+                op.addEventListener("click", function(){
+                    
+                    //Remove all previous options 
+                    options.innerHTML=""; 
+                    
+                    //Add this text to the history! (with style of not latest)
+                    let textNode = document.createElement("div");
+                    
+                    if(action){textNode.setAttribute("class", "action");}
+                    else{textNode.setAttribute("class", "thought");}
+                    textNode.style.opacity=0.5; 
+
+                    //Do event on it (if has one):
+                    if(txt.includes("[E]")){
+                        doEvent(frags[i][0].Id);
+                    }
+                    txt = txt.replace("[E]", "");
+
+                    textNode.innerHTML=txt; 
+                    text.appendChild(textNode); 
+
+                    //Do possible instruction associated with this choice:
+                    doInstruction(frags[i][1]);
+
+                    //Move on 
+                    activeNodeId = frags[i][0].Id; 
+                    next(); 
+                });
+                optionEvents.push(function(){ //FOR TESTING PURPOSES ONLY!
+                    
+                    //Remove all previous options 
+                    options.innerHTML=""; 
+                    
+                    //Add this text to the history! (with style of not latest)
+                    let textNode = document.createElement("div");
+                    
+                    if(action){textNode.setAttribute("class", "action");}
+                    else{textNode.setAttribute("class", "thought");}
+                    textNode.style.opacity=0.5; 
+
+                    //Do event on it (if has one):
+                    if(txt.includes("[E]")){
+                        doEvent(frags[i][0].Id);
+                    }
+                    txt = txt.replace("[E]", "");
+
+                    textNode.innerHTML=txt; 
+                    text.appendChild(textNode); 
+
+                    //Do possible instruction associated with this choice:
+                    doInstruction(frags[i][1]);
+
+                    //Move on 
+                    activeNodeId = frags[i][0].Id; 
+                    next(); 
+                });
+
+            }
+
+            scrollToNext();
+        }
+
+
+        let scrollToNext = function(){
+            
+            let viewportH = cont.clientHeight;
+            let curScroll = cont.scrollTop;
+            let H = content.clientHeight
+            
+            //console.log((curScroll + viewportH).toString() + " vs " + (H+120).toString());
+            let inView = curScroll + viewportH > H+120;
+
+            if(!inView){
+
+                let newScroll = H - viewportH + 50 + 120 //50 is margin, 80 is additional extra (can be changed)
+                let scrollStep = (newScroll-curScroll)/24; 
+
+                let i = 0; 
+                let step = function(){
+                    cont.scrollTo(0, curScroll + scrollStep*i); 
+                    if(i < 24){i++; requestAnimationFrame(step); }
+                } 
+                step(); 
+            }
+            
+        }
+
+        let switchAnimationActive = false;
+        let switchPerspective = async function(klaraOrSofie){
+
+            //Make a little break line
+            text.lastElementChild.style.opacity=0.5; //Set previous node opacity 
+            let breakLine = document.createElement("div");
+            breakLine.setAttribute("class", "breakLine");
+            text.appendChild(breakLine);
+
+            //Update variables
+            if(klaraOrSofie){
+                cont = document.getElementById("SContainer")
+                content = document.getElementById("SContent");
+                text = document.getElementById("SText");
+                continueButton = document.getElementById("SNext");
+                options = document.getElementById("SOptions");
+            } 
+            else{
+                cont = document.getElementById("KContainer")
+                content = document.getElementById("KContent");
+                text = document.getElementById("KText");
+                continueButton = document.getElementById("KNext");
+                options = document.getElementById("KOptions");
+            }
+
+            //Do the animation
+            switchAnimationActive=true;
+            if(klaraOrSofie){
+                document.getElementById("KGrad").style.opacity=0.5;
+                await sleep(50);
+                document.getElementById("back").style.left="0px";
+                await sleep(50);
+                document.getElementById("KContainer").style.opacity=0.5;
+                await sleep(50);
+                document.getElementById("SContainer").style.opacity=1.0;
+                await sleep(50);
+                document.getElementById("SGrad").style.opacity=1.0;
+            }
+            else{
+                document.getElementById("SGrad").style.opacity=0.5;
+                await sleep(50);
+                document.getElementById("back").style.left="-150px";
+                await sleep(50);
+                document.getElementById("SContainer").style.opacity=0.5;
+                await sleep(50);
+                document.getElementById("KContainer").style.opacity=1.0;
+                await sleep(50);
+                document.getElementById("KGrad").style.opacity=1.0;
+            }
+            switchAnimationActive=false; 
+            
+            //Handle all the animation stuff here. 
+        }
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        var F;
+        $.get("DialogueData.json", (data)=>{
+            F = data; 
+            startGame();
+        });
+
+        var VrsTmp;
+        var Vrs={}; 
+
+        $.get("GlobalVariables.json", (data)=>{
+            VrsTmp = data; 
+            parseVrs();
+            startGame();
+        });
+
+        let startCounter = 0;
+        function startGame(){
+            startCounter++;
+            if(startCounter==2){
+                next(); 
+            }
+        }
+
+        function parseVrs() {
+            for(let i = 0; i < VrsTmp.GlobalVariables.length; i++) {
+                let nameSpace = VrsTmp.GlobalVariables[i].Namespace;
+                var spcObj = {};
+
+                for(let j = 0; j < VrsTmp.GlobalVariables[i].Variables.length; j++){
+                    let varVal;
+                    
+                    if(VrsTmp.GlobalVariables[i].Variables[j].Type == "Integer"){
+                        varVal = parseInt(VrsTmp.GlobalVariables[i].Variables[j].Value);
+                    } else{
+                        if(VrsTmp.GlobalVariables[i].Variables[j].Value=="False"){varVal=false;}
+                        else{varVal=true;}
+                    }
+
+                    spcObj[VrsTmp.GlobalVariables[i].Variables[j].Variable]=varVal;
+                }
+                
+                Vrs[nameSpace] = spcObj; 
+
+            }
+        }
+
+        function checkCondition(str){
+            str = str.replace(/\s+/g, '');
+            if(str == ""){return true;}
+            if(str[str.length-1]==";"){str=str.substring(0, str.length-1);}
+
+            //console.log("Checking condition: " + str);
+            
+            let condition = true;
+            let conditions = str.split("&&");
+            for(let i = 0; i < conditions.length; i++){
+
+                let subcondition=false; 
+                let subconditions = conditions[i].split("||");
+                for(let j = 0; j < subconditions.length; j++){
+                    
+                    let sI = 0; //Instruction index
+                    let instrType = "";
+                    for(sI = 0; sI < subconditions[j].length; sI++){
+                        if(subconditions[j][sI]==">"){instrType="greater"; break;}
+                        else if(subconditions[j][sI]=="<"){instrType="less"; break;}
+                        else if(subconditions[j][sI]=="="){instrType="equal"; break;}
+                    }
+
+                    if(instrType=="equal"){
+                        let parsedVar = subconditions[j].substring(0, sI).split(".");
+                        if(Vrs[parsedVar[0]][parsedVar[1]].toString() == subconditions[j].substring(sI+2)){
+                            subcondition=true; break; 
+                        }
+                    }
+                    if(instrType=="greater"){
+                        let parsedVar = subconditions[j].substring(0, sI).split(".");
+                        if(Vrs[parsedVar[0]][parsedVar[1]] > parseInt(subconditions[j].substring(sI+1)) ){
+                            subcondition=true; break; 
+                        }
+                    }
+                    if(instrType=="less"){
+                        let parsedVar = subconditions[j].substring(0, sI).split(".");
+                        if(Vrs[parsedVar[0]][parsedVar[1]] < parseInt(subconditions[j].substring(sI+1)) ){
+                            subcondition=true; break; 
+                        }
+                    }
+                }
+
+                if(subcondition==false){condition=false; break;}     
+            }
+
+            //console.log("The condition was: " + condition.toString());
+            return condition; 
+
+        }
+
+        function doInstruction(str){
+            str=str.replace(/ /g, "");
+            let cmnds = str.split(";");
+            if(cmnds[cmnds.length-1]==""){cmnds.pop();}
+
+            //if(str!=""){console.log("doing instruction: " + str);}
+
+            for(let i = 0; i < cmnds.length; i++){
+                
+                let sI = 0; //Instruction index
+                let instrType = "";
+                for(sI = 0; sI < cmnds[i].length; sI++){
+                    if(cmnds[i][sI]=="+" && cmnds[i][sI+1]=="="){instrType="plus"; break;}
+                    else if(cmnds[i][sI]=="-" && cmnds[i][sI+1]=="="){instrType="minus"; break;}
+                    else if(cmnds[i][sI]=="="){instrType="setTo"; break;}
+                }
+
+                if(instrType=="setTo"){
+                    let parsedVar = cmnds[i].substring(0, sI).split(".");
+                    if(Vrs[parsedVar[0]][parsedVar[1]].toString() == "false" || Vrs[parsedVar[0]][parsedVar[1]].toString() == "true"){ //Case of setting bool
+                        Vrs[parsedVar[0]][parsedVar[1]] = (cmnds[i].substring(sI+1) === 'true'); 
+                    }
+                    else{ //Case of setting number
+                        Vrs[parsedVar[0]][parsedVar[1]] = parseInt(cmnds[i].substring(sI+1));
+                    } 
+                }
+                else if(instrType=="plus"){
+                    let parsedVar = cmnds[i].substring(0, sI).split(".");
+                    Vrs[parsedVar[0]][parsedVar[1]] += parseInt(cmnds[i].substring(sI+2));
+                    if(isEmotional(parsedVar[1])){
+                        console.log("incresed \"" + parsedVar[1] + "\" by " + cmnds[i].substring(sI+2));
+                        if(Vrs[parsedVar[0]][parsedVar[1]] < -5){Vrs[parsedVar[0]][parsedVar[1]]=-5;}
+                        else if(Vrs[parsedVar[0]][parsedVar[1]] > 5){Vrs[parsedVar[0]][parsedVar[1]]=5;}
+                    }
+                }
+                else if(instrType=="minus"){
+                    let parsedVar = cmnds[i].substring(0, sI).split(".");
+                    Vrs[parsedVar[0]][parsedVar[1]] -= parseInt(cmnds[i].substring(sI+2));
+                    if(isEmotional(parsedVar[1])){
+                        console.log("decreased \"" + parsedVar[1] + "\" by " + cmnds[i].substring(sI+2));
+                        if(Vrs[parsedVar[0]][parsedVar[1]] < -5){Vrs[parsedVar[0]][parsedVar[1]]=-5;}
+                        else if(Vrs[parsedVar[0]][parsedVar[1]] > 5){Vrs[parsedVar[0]][parsedVar[1]]=5;}
+                    }
+                }
+
+            }
+        }
+        function isEmotional(str){
+            switch(str){
+                case "KlaraAnxious": return true;
+                case "percievedMean": return true;
+                case "SofieInterested": return true;
+                case "SofieMask": return true;
+                case "SofieAshamed": return true;
+            }
+            return false; 
+        }
+
+        // Events
+
+        var EM = {}; //Variable used for event memory. Will be an object. 
+        var activeEvent = null; //Stores the ID of the active event. 
+        function doEvent(id){
+            switch(id){
+                //ENDINGS:
+                //Normal
+                case "0x01000000000028FF": //Even the part where i tell you i'm too exhausted for this conversation right now?
+                    activateEnd();
+                    break;
+
+                case "0x0100000000000C2F": //Walk away from the conversation.
+                    activateEnd();
+                    break;
+
+                case "0x010000000000290D": //"I'm fine. Thanks",
+                                           //"Well you're not the only one". 
+                    activateEnd();
+                    break;
+
+                case "0x0100000000002914": // "Nice meeting you", "you too!"
+                    activateEnd();
+                    break;
+                
+                case "0x0100000000002883": //And then [ABRUBT ENDING]
+                    activateEnd();
+                    break;
+
+                case "0x0100000000002926": //That's why I'll always be higher. Forever above you in this invisible, social hierarchy
+                    activateEnd();
+                    break;
+
+                case "0x010000000000292D": //You shouldn't push people. It's not up for me to decide. She's made her choice. Nothing will change today.
+                    activateEnd();
+                    break;
+
+                case "0x0100000000002934": //Not getting better. Spend your best already. 
+                    activateEnd();
+                    break;
+
+                case "0x010000000000293B": //Another time ... A different time. 
+                    activateEnd();
+                    break;
+
+                case "0x0100000000002942": //The problem is you. *It's just you*. 
+                    activateEnd();
+                    break;
+
+                case "0x01000000000029DF": //End of demo
+                    activateEnd();
+                    break;
+
+                //Looping
+                case "0x0100000000000C93":
+                case "0x0100000000000C9A": //"Fuck you!", "No fuck you!"
+
+                    if(!EM.hasOwnProperty("loopOpacity")){ //First time they hit it. 
+                        EM.loopOpacity = 0;
+                        document.getElementById("blackFade").style.display = "block";
+                    } //Every time they click next again.
+                    else{
+                        EM.loopOpacity += 0.1;
+                        document.getElementById("blackFade").style.opacity=EM.loopOpacity;
+
+                        if(document.getElementById("blackFade").style.opacity > 0.7){
+                            document.getElementById("blackFade").style.display="none";                            
+                            EM.loopOpacity=undefined;
+                            activateEnd();               
+                        }
+                    }
+
+                    break;
+
+                //Special
+                case "0x0100000000000A1C": //Klara Tells story about her childdom, trying to explain why she is the way she is. It's dumb and overly long, so the game will "skip through it" for you, until it ends. 
+
+                    var artificialNext; 
+
+                    if(!EM.hasOwnProperty("nextTime")){ //When event begins
+                        
+                        EM.fakeInputActive = true; 
+                        EM.nextTime = 5000;
+                        EM.timeAtWaitBegun = new Date();
+
+                        activeEvent = id;
+
+                        artificialNext = function(){
+
+                            EM.timeAtWaitBegun = new Date(); //All this extra complication is because the player can *also* press next. We don't want the computer to accidentally do it immedeatedly after. 
+
+                            setTimeout(() => {
+                                setTimeout(() => {
+                                    
+                                    continueNext(getFrags(getNode(activeNodeId))[0][0])
+                                    EM.nextTime = EM.nextTime/1.4;
+                                    if(EM.fakeInputActive){artificialNext();}
+
+                                }, EM.nextTime - (new Date() - EM.timeAtWaitBegun));
+                            }, EM.nextTime);
+                        }
+
+                        artificialNext();
+                    }
+                    else{ //Every time they press next (including when *it* does it for us!)
+                        EM.nextTime = EM.nextTime/1.4; 
+                        EM.timeAtWaitBegun = new Date();
+                    }
+
+                break;
+                case "0x0100000000000A56":
+
+                    EM.fakeInputActive = false;
+
+                    document.getElementById("KContainer").style.background = "white";
+                    document.getElementById("SContainer").style.opacity=0;
+                    document.getElementById("SGrad").style.opacity=0;
+                    document.getElementById("KGrad").style.opacity=0;
+                    document.getElementById("blackBack").style.display="block";
+                    text.lastElementChild.style.color="black";
+
+                break;
+                case "0x0100000000000A5D": 
+                    text.lastElementChild.style.color = "black";
+                break;
+                case "0x0100000000002950":
+                    
+                    document.getElementById("KContainer").style.background = "linear-gradient(90deg, rgba(65,36,26,1) 0%, rgba(52,29,21,1) 48%, rgba(52,29,21,1) 52%, rgba(65,36,26,1) 100%);";
+                        //This one doesn't really work. See how you did it in the gradient animation in mattourguide.
+                    document.getElementById("SContainer").style.opacity=1;
+                    document.getElementById("SGrad").style.opacity=1;
+                    document.getElementById("blackBack").style.display="none";
+                    
+                    EM.fakeInputActive = undefined;
+                    EM.nextTime = undefined;
+                    EM.timeAtWaitBegun = undefined;
+
+                    activeEvent = null;
+
+                    activateEnd();
+
+                break;
+
+                case "0x0100000000002654":
+                case "0x010000000000264D":
+
+                    console.log("On the black screen event case!");
+
+                    if(!EM.hasOwnProperty("blackHeight")){ //When event begins
+
+                        console.log("black screen event started!");
+                        
+                        EM.blackHeight = 0; //in percent
+                        EM.blackSpeed = 0.0014; //Speed increase pr. frame
+                        EM.blackAcceleration = 0; //Acceleration increase pr. frame
+                        EM.nextPresses = 0;
+
+                        var blackFade = document.getElementById("blackFade");
+                        blackFade.style.display="block";
+                        blackFade.style.opacity=1;
+                        blackFade.style.height="0vh";
+
+                        var step = function(){
+                            EM.blackAcceleration += 0.00001;
+                            EM.blackSpeed += EM.blackAcceleration;
+                            EM.blackHeight += EM.blackSpeed; 
+                            blackFade.style.height = EM.blackHeight + "vh";
+
+                            if(blackFade.getBoundingClientRect().height < text.lastElementChild.getBoundingClientRect().y){
+                                setTimeout(() => {step();}, 33); //30fps;
+                            } 
+                            else{ //End
+                                EM.blackHeight = undefined;
+                                EM.blackSpeed = undefined;
+                                activeEvent=null;
+                                blackFade.style.display="none";
+                                blackFade.style.opacity=0;
+                                blackFade.style.height="100vh";
+                                options.innerHTML="";
+                                activateEnd();
+                            }
+                        } 
+                        step();
+
+                    } else { //Every time they press next
+                        EM.blackHeight -= Math.max(3/Math.pow(1.01,EM.nextPresses), 0.5);
+                        if(EM.blackHeight < 0){EM.blackHeight = 0;}
+                        EM.nextPresses += 1;
+                    }
+
+                break;
+                //OTHER EVENTS:
+
+
+                
+            }
+        }
+        function activateEnd(){ //TEST IF THIS WORKS WHEN YOU GO FROM AN OPTION INSTEAD OF NEXT!
+            switchPerspective(true); //Switch over to Sofie since that's where we start. 
+            
+            document.getElementById("endScreen").style.display="block";
+            continueButton.style.visibility="hidden";
+
+            document.getElementById("SText").innerHTML="";
+            document.getElementById("KText").innerHTML="";
+
+            activeEvent=null;
+            continueEvent=null;
+
+            parseVrs();
+        }
+
+        document.getElementById("endText").addEventListener("click", ()=>{
+            activeNodeId="0x01000000000028C8";
+            next(); 
+            document.getElementById("endScreen").style.display="none";
+        });
+
+
+
+        // Get nodes and frags:
+
+        function getNode(ID){
+            let foundNode = null;
+            let tL;
+            let L = 0;
+            for(let i = 0; i<4; i++){
+                
+                if(i==0){tL = F.Dialogues;}
+                else if(i==1){tL = F.DialogueFragments; }
+                else if(i==2){tL = F.Hubs;}
+                else{tL = F.Jumps;}
+
+                L = tL.length;
+                for(let j = 0; j < L; j++){
+                    if(tL[j].Id == ID){
+                        tL[j]["nT"]=i; //For the nodeType, it's more clean just to use an int, even if it's not as clear. The order from 0, 1, 2, 3, is the same as the order in the DialogueData.JSON document.
+                        foundNode=tL[j];
+                        break;
+                    }
+                }
+
+                if(foundNode != null){break;}
+            }
+            return foundNode; 
+        }
+
+        function getFrags(node, outDialogue){
+            var frags = [];
+
+            if(outDialogue==true || node.nT == 1 || node.nT == 2){ //Frags or Hubs
+
+                for(let i = 0; i < node.out.length; i++){
+                    let oNode = getNode(node.out[i][1]);
+
+                    if(checkCondition(oNode.Condition) || oNode.Id == node.Parent){
+
+                        if(oNode.nT == 1){frags.push([oNode, node.out[i][0]]);}
+                        else if(oNode.Id == node.Parent){ //This is what happens when you go *out* of a dialogue, it's kind of dumb. 
+                            let newFrags = getFrags(oNode, true);
+                            for(let j = 0; j < newFrags.length; j++){frags.push([newFrags[j][0], newFrags[j][1]]);}
+                        }
+                        else{
+                            let newFrags = getFrags(oNode);
+                            for(let j = 0; j < newFrags.length; j++){frags.push([newFrags[j][0], newFrags[j][1]]);}
+                        }
+                    }
+                }
+            }
+            else if(node.nT == 3){ //Jumps 
+                let target = getNode(node.Target);
+                if(checkCondition(target.Condition)){
+                    if(target.nT == 1){frags.push([target, node.Target[0]]);}
+                    else{
+                        let newFrags = getFrags(target); 
+                        for(let j = 0; j < newFrags.length; j++){frags.push([newFrags[j][0], newFrags[j][1]]);}
+                    };
+                }
+            }
+            else{ //Dialogue (they use [in] instead of [out], for some reason)
+                for(let i = 0; i < node.in.length; i++){
+                    let oNode = getNode(node.in[i][1]);
+                    if(checkCondition(oNode.Condition)){
+                        if(oNode.nT == 1){frags.push([oNode, node.in[i][0]]); }
+                        else{
+                            let newFrags = getFrags(oNode);
+                            for(let j = 0; j < newFrags.length; j++){frags.push([newFrags[j][0], newFrags[j][1]]);}
+                        }
+                    }
+                }
+            }
+
+            return frags; 
+        }
+
+    </script>
+
+
+</body>
